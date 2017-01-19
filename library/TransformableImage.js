@@ -18,6 +18,9 @@ export default class TransformableImage extends Component {
       width: PropTypes.number,
       height: PropTypes.number,
     }),
+    fallbackImageSource: PropTypes.shape({
+      uri: PropTypes.string,
+    }),
 
     enableTransform: PropTypes.bool,
     enableScale: PropTypes.bool,
@@ -39,6 +42,7 @@ export default class TransformableImage extends Component {
     this.state = {
       width: 0,
       height: 0,
+      source: props.source,
 
       imageLoaded: false,
       pixels: undefined,
@@ -101,10 +105,12 @@ export default class TransformableImage extends Component {
         style={this.props.style}>
         <Image
           {...this.props}
+          source={this.state.source}
           style={[this.props.style, {backgroundColor: 'transparent'}]}
           resizeMode={'contain'}
           onLoadStart={this.onLoadStart.bind(this)}
           onLoad={this.onLoad.bind(this)}
+          onLoadEnd={this.onLoadEnd.bind(this)}
           capInsets={{left: 0.1, top: 0.1, right: 0.1, bottom: 0.1}} //on iOS, use capInsets to avoid image downsampling
         />
       </ViewTransformer>
@@ -123,6 +129,13 @@ export default class TransformableImage extends Component {
     this.setState({
       imageLoaded: true
     });
+  }
+
+  onLoadEnd(e) {
+    this.props.onLoadEnd && this.props.onLoadEnd(e);
+    if (!this.state.imageLoaded && this.props.fallbackImageSource) {
+      this.setState({ source: this.props.fallbackImageSource });
+    }
   }
 
   onLayout(e) {
